@@ -1,0 +1,98 @@
+import numpy as np
+from scipy.optimize import curve_fit
+import matplotlib.pyplot as plt
+
+# Your data
+x_data = np.array([#data_x]) 
+y1_data = np.array([#data_y1]) 
+y2_data = np.array([#data_y2])  
+
+# Defining the function for fitting
+def func(x, A1, B1, A2, B2):
+    exponential_curve = (A1*x + B1)*np.exp(A2*x + B2)
+    return exponential_curve 
+
+# Defining the total number of coefficients
+total_coeffs = 4
+
+# Initial guess for coefficients
+initial_guess = [0.1] * total_coeffs  
+
+# Performing curve fitting for y1_data 
+params_y1, covariance_y1 = curve_fit(func, x_data, y1_data, p0=initial_guess, maxfev=500000, ftol=1e-6, xtol=1e-6)
+
+# Printing the fitted parameters for y1_data
+print("Fitted Parameters for y1_data:")
+print(params_y1)
+
+# Using the fitted parameters to generate the fitted curve for y1_data
+fitted_curve_y1 = func(x_data, *params_y1)
+
+# Performing curve fitting for y2_data 
+params_y2, covariance_y2 = curve_fit(func, x_data, y2_data, p0=initial_guess, maxfev=500000, ftol=1e-6, xtol=1e-6)
+
+# Printing the fitted parameters for y2_data
+print("\nFitted Parameters for y2_data:")
+print(params_y2)
+
+# Using the fitted parameters to generate the fitted curve for y2_data
+fitted_curve_y2 = func(x_data, *params_y2)
+
+# Plotting the original data and the fitted curves
+plt.figure(figsize=(10, 6))  # Adjust the values (width, height) as needed
+plt.scatter(x_data, y1_data, label='Graph for crystal 1')
+plt.plot(x_data, fitted_curve_y1, label='Fitted Curve for Graph 1', color='red')
+plt.xlabel('Frequency, ν (Hz)')
+
+plt.scatter(x_data, y2_data, label='Graph for crystal 2')
+plt.plot(x_data, fitted_curve_y2, label='Fitted Curve for Graph 2', color='blue')
+plt.ylabel('Effective Electro-Optic Coefficient, rc (pm/V)')
+plt.title('Variation of rc (pm/V) with ν (Hz)')
+plt.legend()
+
+# Setting x-axis tick marks with a gap size of 0.5 in logarithmic scale of base 10.
+ticks = np.arange(min(x_data), max(x_data) + 0.4, 0.4)
+labels = ['$10^{{{:.1f}}}$'.format(tick) for tick in ticks]
+plt.xticks(ticks, labels)
+
+plt.show()
+
+# After curve fitting, evaluating the goodness of the fit
+
+#(1)Calculating R-squared
+#Coefficient of Determination (R-squared):
+# R-squared measures the proportion of the variance in the dependent variable (y) that is predictable from the independent variable (x).
+# It ranges from 0 to 1, with 1 indicating a perfect fit.
+# In Python, we can obtain R-squared from the covariance matrix after curve fitting.
+residuals_y1 = y1_data - fitted_curve_y1
+ss_res_y1 = np.sum(residuals_y1**2)
+ss_tot_y1 = np.sum((y1_data - np.mean(y1_data))**2)
+r_squared_y1 = 1 - (ss_res_y1 / ss_tot_y1)
+
+print("R-squared for y1_data:", r_squared_y1)
+
+residuals_y2 = y2_data - fitted_curve_y2
+ss_res_y2 = np.sum(residuals_y2**2)
+ss_tot_y2 = np.sum((y2_data - np.mean(y2_data))**2)
+r_squared_y2 = 1 - (ss_res_y2 / ss_tot_y2)
+
+print("R-squared for y2_data:", r_squared_y2)
+
+#(2)Plotting residuals (Residuals Analysis)
+#Examining the residuals (the differences between actual and fitted values).
+#Plotting residuals to check for patterns or systematic errors.
+plt.figure(figsize=(10, 6))
+plt.scatter(x_data, residuals_y1, label='Residuals for Graph 1', color='red')
+plt.axhline(y=0, color='black', linestyle='--', linewidth=1)
+plt.xlabel('Frequency, $\\nu$ (Hz)')
+plt.ylabel('Residuals')
+plt.title('Residuals Analysis for Graph 1')
+plt.legend()
+
+plt.scatter(x_data, residuals_y2, label='Residuals for Graph 2', color='blue')
+plt.axhline(y=0, color='black', linestyle='--', linewidth=1)
+plt.xlabel('Frequency, $\\nu$ (Hz)')
+plt.ylabel('Residuals')
+plt.title('Residuals Analysis for Graph 2')
+plt.legend()
+plt.show()
